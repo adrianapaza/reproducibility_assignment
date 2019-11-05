@@ -1,0 +1,271 @@
+---
+title: "Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+\begin{comment}[TEXT IN SQUARE BRACKETS IS HERE FOR GUIDANCE. PLEASE DELETE TEXT IN SQUARE BRACKETS BEFORE KNITTING THE FINAL REPORT]\end{comment}
+
+# Report Details
+
+\begin{comment}[PILOT/COPILOT ENTER RELEVANT REPORT DETAILS HERE]\end{comment}
+
+```{r}
+articleID <- 6-1-2015 # insert the article ID code here e.g., "10-3-2015"
+reportType <- 'pilot' # specify whether this is the 'pilot' report or 'copilot' report
+pilotNames <- "Adrian Apaza" # insert the pilot's name here e.g., "Tom Hardwicke".
+copilotNames <- "Philip Hernandez" # # insert the co-pilot's name here e.g., "Michael Frank".
+pilotTTC <- 250 # insert the pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+copilotTTC <- NA # insert the co-pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+pilotStartDate <- 11/1/19 # insert the piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- NA # insert the co-piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- NA # insert the date of final report completion in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+------
+
+#### Methods summary: 
+
+\begin{comment}[PILOT/COPILOT write a brief summary of the methods underlying the target outcomes written in your own words]
+\end{comment}
+10 participants were recruited. Each participant was seated at a table and wearing goggles that may be opened or closed, and the table varied in whether it was cluttered with other disks or not. Two main types of trials were performed. In action trials, participants tried to grasp (grip aperture is DV) the target disk as quickly as possible; in perception tasks they were required to indicate the size of the target disk with their had (manual estimate is DV). Additionally participants may have had the goggles closed (open loop) or open (closed loop) so that they may see thier hand and disks or not. In total for each participant "[t]here were 16 combinations of conditions and target sizes: 2 crowding conditions (crowded or uncrowded) × 2 tasks (grasping or manual estimation) × 2 viewing con- ditions (closed or open loop) × 2 target sizes (3.0 cm or 3.75 cm); each combination was presented 10 times (160 trials in total)."
+
+------
+
+#### Target outcomes: 
+
+
+Experiment 1 was designed to explore the effects of crowding on perception and action, with a particular focus on whether participants could scale their grip aperture to the size of the target even when they could not consciously identify the size of the target. We carried out a four-way repeated measures ANOVA on the manual estimates and PGAs with task (estimation vs. grasping), crowding condition (uncrowded vs. crowded), viewing condition (closed- vs. open-loop), and target size (3.0 vs. 3.75 cm) as main factors. The significant interaction between task and crowding condition, F(1, 9) = 6.818, p = .028, suggested that crowding had different effects on performance of the grasping and manual estimation tasks. Not surprisingly, when the target was presented in isolation, participants were able to manually estimate the sizes of the two targets—and this was true for both closed-loop trials, t(9) = 7.23, p < .001, and open-loop trials, t(9) = 9.19, p < .001. Similarly, participants showed excellent grip scaling for targets presented in isolation on both closed-loop trials, t(9) = 4.29, p = .002, and openloop trials, t(9) = 4.79, p = .001 (Fig. 3). Things were quite different, however, when the target disks were surrounded by flankers. In this condition, participants could no longer discriminate between the two disk sizes using a manual estimate closed-loop trials: t(9) = 1.02, p = .334; open-loop trials: t(9) = 1.78, p = .108?presumably because the size of the target was perceptually invisible. (Note that we use the term invisible to refer to the fact that participants could not identify the size of the target, even though they were aware of its presence and position.) In contrast, when participants were asked to grasp the same targets, their PGAs were still scaled to target size - closed-loop trials: t(9) = 4.21, p = .002; open-loop trials: t(9) = 3.392, p = .008 (Fig. 3).
+
+------
+
+\begin{comment}[PILOT/COPILOT DO NOT CHANGE THE CODE IN THE CHUNK BELOW]\end{comment}  
+
+```{r global_options, include=FALSE}
+# sets up some formatting options for the R Markdown document
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages and prepare report object
+
+\begin{comment}[PILOT/COPILOT Some useful packages are being loaded below. You can add any additional ones you might need too.]\end{comment}
+
+```{r}
+# load packages
+library(tidyverse) # for data munging
+library(dplyr)
+library(readxl)
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(ReproReports) # custom reporting functions
+```
+
+\begin{comment}[PILOT/COPILOT DO NOT MAKE CHANGES TO THE CODE CHUNK BELOW]\end{comment}
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+# Step 2: Load data
+
+```{r}
+#read in the data
+df <- read_excel("GroupA_6-1-2015/data/data_Exp1.xlsx", 
+    sheet = "summary", col_names = FALSE,n_max=13)
+#Notice that many cells are not filled in (since this is an excel table), lets fix that by assigning the conditions to appropriate columns
+#but first drop empty rows
+df<-df[,(colSums(is.na(df))!=13)]
+#rename columns
+colnames(df) <- c(1:17)
+#rename columns for each condition
+colnames(df) <- paste("Cond", c(1:17), sep = "_")
+
+```
+
+# Step 3: Tidy data
+
+```{r}
+##Create  new variables (columns) for the various conditions: open/closed loop; crowded or not, small or large, estimation vs grasping
+library(tidyr)
+
+
+#data_long <- gather(df, df[,2], df[,3], df[,2:3], factor_key=TRUE)
+#make into long data frame
+data_long <- gather(df[4:13,], condition, measurement, Cond_2:Cond_17, factor_key=TRUE)
+
+```
+
+# Step 4: Run analysis
+
+## Pre-processing
+
+```{r}
+#specify values of variables based upon values for each condition as seen in the orginal datframe (df)
+
+data_long$closed<-F
+#recode closed for conditions 2|3|4|5|10|11|12|13
+data_long$closed[grepl("2|3|4|5|10|11|12|13",data_long$condition)]<-T
+#recode 14,15 back to false
+data_long$closed[grepl("14|15",data_long$condition)]<-F
+
+#recode conditions c(3,5,7,9,11,13,15,17) as small
+data_long$small<-T
+data_long$small[grepl("3|5|7|9|11|13|15|17",data_long$condition)]<-F
+#recode conditionsc(2,3,6,7,10,11,14,15)as small item conditions,
+data_long$crowded<-T
+data_long$crowded[grepl("2|3|6|7|10|11|14|15",data_long$condition)]<-F
+#recode others back to false
+data_long$crowded[grepl("12|13|16|17",data_long$condition)]<-T
+
+
+#now identify estimation or not (task condition)
+#estimation is 10 thru 17
+data_long$estimation<-F
+data_long$estimation[grepl("10|11|12|13|14|15|16|17",data_long$condition)]<-T
+data_long$measurement<-as.numeric(data_long$measurement)
+
+#rename the subject variable as such
+colnames(data_long)[1]<-'Subject'
+
+
+
+```
+
+## Descriptive statistics
+
+```{r}
+
+
+#Lets look at means for various groups
+means<-data_long %>%                                        # Specify data frame
+  group_by(closed,crowded,small,estimation) %>%                         # Specify group indicator
+  summarise_at(vars(measurement),              # Specify column
+               list(name = mean))  
+#rename the last column and view results
+colnames(means)[5]<-"Group Mean"
+print(means)
+```
+
+## Inferential statistics
+
+```{r}
+
+#Run the model then get the statistics
+#We carried out a four-way repeated measures ANOVA on the manual estimates and PGAs with task (estimation vs. grasping), crowding condition (uncrowded vs. crowded), viewing condition (closed- vs. open-loop), and target size (3.0 vs. 3.75 cm) as main factors. The significant interaction between task and crowding condition, F(1, 9) = 6.818, p = .028
+model22<-aov(measurement~closed*small+closed*crowded+closed*estimation+small*crowded+small*estimation+crowded*estimation+Subject,data=data_long)
+anova(model22)
+#we get a significant result but not the same level of significance
+reportObject <- reproCheck(reportedValue='6.818', anova(model22)[11,4], valueType = 'F')
+
+
+
+
+
+
+##run t tests of mean comparisons matched to conditions in dataframe
+
+#in isolation, participants were able to manually estimate the sizes of the two targets—and this was true for both closed-loop trials, t(9) = 7.23, p < .001, and open-loop trials, t(9) = 9.19
+#isoloation for closed loop crowded vs not are condtions
+
+
+#test for closed loop uncrowded estimation
+t1<-t.test(data_long$measurement[data_long$closed==T & data_long$crowded==F & data_long$small==F & data_long$estimation==T],
+data_long$measurement[data_long$closed==T & data_long$crowded==F  &data_long$small==T & data_long$estimation==T],paired = T)
+reportObject <- reproCheck(reportedValue='7.23', t1$statistic, valueType = 't')
+
+#test for open loop uncrowded estimation
+t2<-t.test(data_long$measurement[data_long$closed==F & data_long$crowded==F & data_long$small==F & data_long$estimation==T],
+data_long$measurement[data_long$closed==F & data_long$crowded==F  &data_long$small==T & data_long$estimation==T],paired = T)
+reportObject <- reproCheck(reportedValue='9.19', t2$statistic, valueType = 't')
+
+#Similarly, participants showed excellent grip scaling for targets presented in isolation on both closed-loop trials, t(9) = 4.29, p = .002, and openloop trials, t(9) = 4.79, p = .001
+
+#test for closed loop grasp uncrowded
+t3 <- t.test(data_long$measurement[data_long$closed==T & data_long$crowded==F & data_long$small==F & data_long$estimation==F],
+data_long$measurement[data_long$closed==T & data_long$crowded==F  &data_long$small==T & data_long$estimation==F],paired = T)
+reportObject <- reproCheck(reportedValue='4.29', t3$statistic, valueType = 't')
+
+#test for open loop grasp uncrowded
+t4 <- t.test(data_long$measurement[data_long$closed==F & data_long$crowded==F & data_long$small==F & data_long$estimation==F],
+data_long$measurement[data_long$closed==F & data_long$crowded==F  &data_long$small==T & data_long$estimation==F],paired = T)
+reportObject <- reproCheck(reportedValue='4.79', t4$statistic, valueType = 't')
+
+#Things were quite different, however, when the target disks were surrounded by flankers. In this condition, participants could no longer discriminate between the two disk sizes using a manual estimate closed-loop trials: t(9) = 1.02, p = .334; open-loop trials: t(9) = 1.78, p = .108
+
+#Crowded
+#test for closed loop crowded estimation
+t5 <- t.test(data_long$measurement[data_long$closed==T & data_long$crowded==T & data_long$small==F & data_long$estimation==T],
+data_long$measurement[data_long$closed==T & data_long$crowded==T  &data_long$small==T & data_long$estimation==T],paired = T)
+reportObject <- reproCheck(reportedValue='1.02', t5$statistic, valueType = 't')
+
+#test for open loop crowded estimation
+t6 <- t.test(data_long$measurement[data_long$closed==F & data_long$crowded==T & data_long$small==F & data_long$estimation==T],
+data_long$measurement[data_long$closed==F & data_long$crowded==T  &data_long$small==T & data_long$estimation==T],paired = T)
+reportObject <- reproCheck(reportedValue='1.78', t6$statistic, valueType = 't')
+
+
+
+#In contrast, when participants were asked to grasp the same targets, their PGAs were still scaled to target size?closed-loop trials: t(9) = 4.21, p = .002; open-loop trials: t(9) = 3.392, p = .008
+#test for closed loop grasp crowded
+t7 <-t.test(data_long$measurement[data_long$closed==T & data_long$crowded==T & data_long$small==F & data_long$estimation==F],
+data_long$measurement[data_long$closed==T & data_long$crowded==T  &data_long$small==T & data_long$estimation==F],paired = T)
+
+reportObject <- reproCheck(reportedValue='4.21', t7$statistic, valueType = 't')
+
+#test for open loop grasp crowded
+t8 <- t.test(data_long$measurement[data_long$closed==F & data_long$crowded==T & data_long$small==F & data_long$estimation==F],
+data_long$measurement[data_long$closed==F & data_long$crowded==T  &data_long$small==T & data_long$estimation==F],paired = T)
+
+reportObject <- reproCheck(reportedValue='3.392', t8$statistic, valueType = 't')
+
+##All the t tests replicate!
+
+
+```
+
+# Step 5: Conclusion
+
+This reproducability check failed to generate the same F statistic for the four way repeated ANOVA with the interaction between task and crowding condition. This may be because it is not clear what interactions were all considered in the original authors' ANOVA analysis to generate the F stat and so may not have been used here (e.g. did the authors consider all 4 way interactions? If so then that also failed to genereate the same F-statisitc). Additionally there were some minor differences in the t statistics generated. However the significance of the results in the anticipated directions is not in question. I do not think the original conclusions are seriously affected
+
+[PILOT/COPILOT DOD NOT EDIT THE CODE CHUNK BELOW]
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add variables to report 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome %in% c("MAJOR_ERROR", "DECISION_ERROR"))){
+  finalOutcome <- "Failure"
+}else{
+  finalOutcome <- "Success"
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, finalOutcome)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "copilot"){
+  write_csv(reportObject, "copilotReportDetailed.csv")
+  write_csv(reportExtras, "copilotReportExtras.csv")
+}
+```
+
+# Session information
+
+[This function will output information about the package versions used in this report:]
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
